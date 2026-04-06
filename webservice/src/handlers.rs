@@ -1,8 +1,8 @@
 use super::models::Course;
 use super::state::AppState;
-use actix_web::{web, HttpResponse, Responder};
-use chrono::Utc;
-use crate::db_access::{get_course_details_db, get_courses_for_teacher_db, post_new_course_db};
+use actix_web::{web, HttpResponse};
+use super::db_access::*;
+use super::errors::MyError;
 
 /**
  * 健康检查 处理器
@@ -22,9 +22,10 @@ pub async fn health_check_handler(app_state: web::Data<AppState>) -> HttpRespons
 pub async fn new_course(
     new_course: web::Json<Course>,
     app_state: web::Data<AppState>,
-) -> HttpResponse {
-    let course = post_new_course_db(&app_state.db,new_course.into()).await;
-    HttpResponse::Ok().json(course)
+) -> Result<HttpResponse, MyError> {//同样修改返回类型
+    post_new_course_db(&app_state.db,new_course.into())
+        .await
+        .map(|course|HttpResponse::Ok().json(course))//闭包，返回
 }
 
 /**
@@ -33,10 +34,11 @@ pub async fn new_course(
 pub async fn get_teacher_course(
     params: web::Path<usize,>,//xxxx/{teacher_id}
     app_state: web::Data<AppState>,
-) -> HttpResponse {
+) -> Result<HttpResponse,MyError> {
     let teacher_id = i32::try_from(params.into_inner()).unwrap();
-    let courses = get_courses_for_teacher_db(&app_state.db, teacher_id).await;
-        HttpResponse::Ok().json(courses)
+    get_courses_for_teacher_db(&app_state.db, teacher_id)
+        .await
+        .map(|courses| HttpResponse::Ok().json(courses))
 }
 
 /**
@@ -45,9 +47,10 @@ pub async fn get_teacher_course(
 pub async fn get_course(
     params: web::Path<(usize, usize)>,
     app_state: web::Data<AppState>,
-) -> HttpResponse {
+) -> Result<HttpResponse,MyError> {
         let teacher_id = i32::try_from(params.0).unwrap();
     let course_id = i32::try_from(params.1).unwrap();
-    let course = get_course_details_db(&app_state.db, teacher_id, course_id).await;
-        HttpResponse::Ok().json(course)
+    get_course_details_db(&app_state.db, teacher_id, course_id)
+        .await
+        .map(|course| HttpResponse::Ok().json(course))
 }
