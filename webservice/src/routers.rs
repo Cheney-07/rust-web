@@ -1,4 +1,4 @@
-use crate::handlers::{course::*,general::*};
+use crate::handlers::{course::*,general::*,teacher::*};
 use actix_web::web;
 
 pub fn general_routes(cfg: &mut web::ServiceConfig) {
@@ -21,9 +21,20 @@ pub fn course_routes(cfg: &mut web::ServiceConfig) {
             .route("/{teacher_id}/{course_id}",
                    web::delete().to(delete_course))
             .route("/{teacher_id}/{course_id}",
-                   web::put().to(update_course_details))
+                   web::put().to(update_course_details)),
     );
 
     //路由配置方式二
     // cfg.route("/course",web::post().to(new_course));
+}
+
+pub fn teacher_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/teacher")
+            .route("/",web::get().to(get_all_teachers))
+            .route("/",web::post().to(post_new_teacer))
+            .route("/{teacher_id}",web::get().to(get_all_teachers))
+            .route("/{teacher_id}",web::put().to(update_teacher_details))
+            .route("/{teacher_id}",web::delete().to(delete_teacher)),
+    );
 }

@@ -78,7 +78,7 @@ pub struct UpdateCourse{
 impl From<web::Json<UpdateCourse>> for UpdateCourse {
     fn from(course: web::Json<CreateCourse>) -> Self{
        UpdateCourse{
-            name: course.name.clone(),
+            name: Some(course.name.clone()),
             description: course.description.clone(),
             format:course.format.clone(),
             structure:course.structure.clone(),
