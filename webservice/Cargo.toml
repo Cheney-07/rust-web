@@ -13,7 +13,13 @@ actix-web="4.0.0"
 serde={version="1.0.134",features=["derive"]}
 chrono={version="0.4.19",features=["serde"]}
 dotenv="0.15.0"
-sqlx={version="0.5.10",features=["postgres","runtime-tokio-rustls","macros","chrono"]}
+sqlx = { version = "0.7.4", features = [
+    "postgres",
+    "runtime-tokio",
+    "tls-rustls",
+    "macros",
+    "chrono"
+] }
 
 
 [[bin]]

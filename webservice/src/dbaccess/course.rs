@@ -42,7 +42,7 @@ pub async fn post_new_course_db(pool:&PgPool, new_course:CreateCourse)->Result<C
         Course,
         r#"INSERT INTO course(teacher_id, name,description,format,structure,duration,price,language,level)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id,teacher_id, name,description,format,structure,duration,price,language,level"#,
+        RETURNING id,teacher_id,time,name,description,format,structure,duration,price,language,level"#,
         new_course.teacher_id,new_course.name,new_course.description,
         new_course.format, new_course.structure,new_course.duration,
         new_course.price,new_course.language, new_course.level,
@@ -53,15 +53,25 @@ pub async fn post_new_course_db(pool:&PgPool, new_course:CreateCourse)->Result<C
     Ok(row)
 }
 
-pub async fn delete_course_db(pool:&PgPool, teacher_id:i32, id: i32)->Result<Course,MyError> {
-    let course_row = sqlx::query!(
-        "DELETE FROM course WHERE teacher_id = $1 and id = $2",
+pub async fn delete_course_db(
+    pool: &PgPool,
+    teacher_id: i32,
+    id: i32
+) -> Result<(), MyError> {
+
+    let result = sqlx::query!(
+        "DELETE FROM course WHERE teacher_id = $1 AND id = $2",
         teacher_id,
         id,
     )
         .execute(pool)
         .await?;
-    Ok(format!("Deleted course with id {}", course_row))
+
+    if result.rows_affected() == 0 {
+        return Err(MyError::NotFound("Course not found".into()));
+    }
+
+    Ok(())
 }
 
 pub async fn update_course_details_db(
@@ -105,7 +115,7 @@ pub async fn update_course_details_db(
     } else {
         current_course_row.duration.unwrap_or_default()
     };
-    let price: String = if let Some(price) = update_course.price {
+    let price: i32 = if let Some(price) = update_course.price {
         price
     } else {
         current_course_row.price.unwrap_or_default()
@@ -125,13 +135,13 @@ pub async fn update_course_details_db(
         "UPDATE course SET name = $1, description = $2, format = $3,
         structure = $4, duration = $5, price = $6, language = $7,
         level = $8 where teacher_id = $9 and id = $10
-        RETURNING id,teacher_id,name,time,
+        RETURNING id,teacher_id,name,time,language,
         description,format,structure,duration,price,level",
         name,description,format,structure,duration,
         price,language,level,teacher_id,id
     )
         .fetch_one(pool)
-    .await?;
+    .await;
 
     if let Ok(course) = course_row {
         Ok(course)

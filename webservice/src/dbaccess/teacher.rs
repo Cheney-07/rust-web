@@ -8,12 +8,12 @@ pub async fn get_all_teachers_db(pool: &PgPool) -> Result<Vec<Teacher>, MyError>
     .await?;
 
     let teachers: Vec<Teacher> = rows
-        .iter()
-        .map(|r| Teacher {
-            id:r.id,
-            name:r.name.clone(),
-            picture_url:r.picture_url.clone(),
-            profile:r.profile.clone(),
+        .into_iter()
+        .map(|row| Teacher {
+            id: row.id,
+            name: row.name,
+            picture_url: row.picture_url,
+            profile: row.profile,
         })
         .collect();
 
@@ -25,7 +25,7 @@ pub async fn get_all_teachers_db(pool: &PgPool) -> Result<Vec<Teacher>, MyError>
 
 pub async fn get_teacher_details_db(pool: &PgPool, teacher_id: i32) -> Result<Teacher, MyError> {
     let row = sqlx::query!(
-        "SELECT id,name,picture_url,profile FROM teacher WHERE teacher_id=$1",
+        "SELECT id,name,picture_url,profile FROM teacher WHERE id=$1",
         teacher_id
     )
         .fetch_one(pool)
@@ -59,7 +59,7 @@ pub async fn post_new_teacher_db(pool: &PgPool, new_teacher: CreateTeacher,) -> 
 
 pub async fn update_teacher_details_db(pool: &PgPool,teacher_id:i32, update_teacher: UpdateTeacher) -> Result<Teacher, MyError> {
     let row = sqlx::query!(
-        "SELECT id ,name,picture_url FROM teacher WHERE teacher_id=$1",
+        "SELECT id ,name,picture_url,profile FROM teacher WHERE id=$1",
         teacher_id
     )
         .fetch_one(pool)
@@ -105,7 +105,7 @@ pub async fn update_teacher_details_db(pool: &PgPool,teacher_id:i32, update_teac
 }
 
 pub async fn delete_teacher_db(pool: &PgPool, teacher_id: i32) -> Result<String, MyError> {
-    let row = sqlx::query(&format!("DELETE FROM teacher WHERE id={}," teacher_id))
+    let row = sqlx::query(&format!("DELETE FROM teacher WHERE id={}", teacher_id))
     .execute(pool)
     .await
     .map_err(|_err| MyError::DBError("Unable to delete teacher".into()))?;

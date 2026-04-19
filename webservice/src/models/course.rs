@@ -57,7 +57,7 @@ impl TryFrom<web::Json<CreateCourse>> for CreateCourse {
             structure:course.structure.clone(),
             duration:course.duration.clone(),
             price:course.price,
-            language:course.language,
+            language:course.language.clone(),
             level:course.level.clone(),
         })
     }
@@ -76,15 +76,15 @@ pub struct UpdateCourse{
 }
 
 impl From<web::Json<UpdateCourse>> for UpdateCourse {
-    fn from(course: web::Json<CreateCourse>) -> Self{
+    fn from(course: web::Json<UpdateCourse>) -> Self{
        UpdateCourse{
-            name: Some(course.name.clone()),
+            name: course.name.clone(),
             description: course.description.clone(),
             format:course.format.clone(),
             structure:course.structure.clone(),
             duration:course.duration.clone(),
             price:course.price,
-            language:course.language,
+            language:course.language.clone(),
             level:course.level.clone(),
         }
     }
